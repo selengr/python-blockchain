@@ -41,10 +41,10 @@ def cmd_mine(args):
 def cmd_send(args):
     chain = get_chain(args.file)
     transaction = Transaction(args.sender, args.receiver, args.amount)
-    added = chain.add_transaction(transaction)
+    error = chain.add_transaction(transaction)
 
-    if not added:
-        print("Transaction rejected. Check names, amount, and balance.")
+    if error:
+        print("Transaction rejected:", error)
         sys.exit(1)
 
     Storage.save(chain, args.file)
