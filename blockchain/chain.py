@@ -17,10 +17,10 @@ class Blockchain:
 
     def add_transaction(self, transaction):
         if not transaction.sender or not transaction.receiver:
-            return False
+            return "sender and receiver are required"
 
         if transaction.amount <= 0:
-            return False
+            return "amount must be greater than 0"
 
         if transaction.sender != "network":
             from blockchain.wallet import Wallet
@@ -31,12 +31,16 @@ class Blockchain:
                 for tx in self.pending_transactions
                 if tx.sender == transaction.sender
             )
+            available = balance - pending_spent
 
-            if balance - pending_spent < transaction.amount:
-                return False
+            if available < transaction.amount:
+                return (
+                    f"not enough balance: {transaction.sender} has {available}, "
+                    f"tried to send {transaction.amount}"
+                )
 
         self.pending_transactions.append(transaction)
-        return True
+        return None
 
     def mine_pending(self, miner):
         reward = Transaction("network", miner, self.mining_reward)
