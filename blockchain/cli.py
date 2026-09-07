@@ -12,7 +12,7 @@ def get_chain(path):
     loaded = Storage.load(path)
     if loaded is not None:
         return loaded
-    return Blockchain(difficulty=3, mining_reward=1)
+    return Blockchain(difficulty=3, mining_reward=50)
 
 
 def print_json(data):

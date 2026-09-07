@@ -1,77 +1,61 @@
 # Simple Python Blockchain
 
-This is a small blockchain project in Python.
-I made it to understand the basic ideas of blockchain in a clear way.
+Small blockchain I built in Python to learn how the basic pieces work.
 
-It is not a real crypto coin.
-It is just for learning.
+This is **not** a real coin. Just a learning project.
 
 Repo: https://github.com/selengr/python-blockchain
 
-## Project structure
+## What you can do
 
-```
-blockchain/
-  transaction.py  - one payment from sender to receiver
-  block.py        - one block with hash and mining
-  chain.py        - the chain + pending transactions
-  wallet.py       - read balances from the chain
-  storage.py      - save and load the chain as JSON
-  network.py      - talk to other nodes
-  app.py          - simple Flask API
-  cli.py          - simple commands in the terminal
-  run.py          - start demo or node
-  static/         - tiny web page
-tests/
-  test_basic.py   - light tests for the main ideas
-```
+- mine blocks and get a reward
+- send coins (they wait in a pending list until someone mines)
+- check balances and if the chain is valid
+- save / load the chain from a JSON file
+- run a tiny web page or use the API
 
-## How to install
-
-From the project folder:
+## Install
 
 ```bash
 pip3 install -r requirements.txt
 ```
 
-## Short commands
+## Quick start
 
 ```bash
-make demo
-make test
-make node
+make demo   # run a short demo in the terminal
+make test   # run the light tests
+make node   # start the node, then open http://localhost:5000/
 ```
 
-`make node` starts the app, then open http://localhost:5000/
-
-## How to run the demo
+## Demo
 
 ```bash
 PYTHONPATH=. python3 blockchain/run.py
 ```
 
-Or with the CLI:
+Same thing with the CLI:
 
 ```bash
 PYTHONPATH=. python3 blockchain/cli.py demo
 ```
 
-## Simple CLI
+## CLI
 
-Mine a reward block:
+Mine a block (miner gets the reward):
 
 ```bash
 PYTHONPATH=. python3 blockchain/cli.py mine --miner Reza
 ```
 
-Send coins (goes to pending first):
+Send coins, then mine so they go into the chain:
 
 ```bash
 PYTHONPATH=. python3 blockchain/cli.py send Reza Bobi 10
 PYTHONPATH=. python3 blockchain/cli.py mine --miner Reza
 ```
 
-Check things:
+Other useful commands:
 
 ```bash
 PYTHONPATH=. python3 blockchain/cli.py pending
@@ -81,60 +65,29 @@ PYTHONPATH=. python3 blockchain/cli.py balances
 PYTHONPATH=. python3 blockchain/cli.py valid
 ```
 
-The chain is saved in `chain_data.json` in the project folder.
+Everything is saved in `chain_data.json` in the project folder.
 
-## How to run a node
+## Web page + node
 
 ```bash
 PYTHONPATH=. python3 blockchain/cli.py node --port 5000
 ```
 
-Or:
+Open http://localhost:5000/
 
-```bash
-PYTHONPATH=. python3 blockchain/run.py node 5000
-```
+From the page you can send coins, mine, and look at balances / pending / chain.
 
-Then open this in your browser:
-
-```text
-http://localhost:5000/
-```
-
-On that tiny page you can:
-- send coins
-- mine pending transactions
-- see balances, pending list, and the chain
-
-The node also loads and saves `chain_data.json`.
-
-## Run the light tests
-
-```bash
-PYTHONPATH=. python3 -m unittest tests.test_basic -v
-```
-
-## Simple API examples
-
-Add a transaction to the pending list:
+## API examples
 
 ```bash
 curl -X POST http://localhost:5000/transaction \
   -H "Content-Type: application/json" \
   -d '{"sender":"Reza","receiver":"Bobi","amount":10}'
-```
 
-Mine pending transactions:
-
-```bash
 curl -X POST http://localhost:5000/mine \
   -H "Content-Type: application/json" \
   -d '{"miner":"Reza"}'
-```
 
-Useful reads:
-
-```bash
 curl http://localhost:5000/chain
 curl http://localhost:5000/pending
 curl http://localhost:5000/balance/Reza
@@ -142,14 +95,37 @@ curl http://localhost:5000/balances
 curl http://localhost:5000/valid
 ```
 
+## Tests
+
+```bash
+PYTHONPATH=. python3 -m unittest tests.test_basic -v
+```
+
+Or just `make test`.
+
+## Project files
+
+```
+blockchain/
+  transaction.py  - one payment
+  block.py        - one block + mining
+  chain.py        - the chain and pending list
+  wallet.py       - balances
+  storage.py      - save / load JSON
+  network.py      - talk to other nodes
+  app.py          - Flask API
+  cli.py          - terminal commands
+  run.py          - demo or node
+  static/         - tiny web page
+tests/
+  test_basic.py
+```
+
 ## How it works
 
-1. A transaction waits in the pending list.
-2. Mining puts pending transactions into a new block.
-3. The miner also gets a small reward.
-4. Each block has a hash and points to the previous block.
-5. Wallet balances are calculated from all transactions in the chain.
-6. The chain can be saved to a JSON file and loaded again later.
-
-That is the main idea.
-Keep it simple and keep learning.
+1. A send goes into the pending list.
+2. Mining puts those pending transactions into a new block.
+3. The miner also gets a reward.
+4. Each block has a hash and links to the previous block.
+5. Balances are calculated by walking through all transactions.
+6. The chain can be saved to JSON and loaded later.

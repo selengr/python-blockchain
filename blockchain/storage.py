@@ -36,7 +36,7 @@ class Storage:
         blockchain = Blockchain.from_dict(
             data.get("chain", []),
             difficulty=data.get("difficulty", 3),
-            mining_reward=data.get("mining_reward", 1),
+            mining_reward=data.get("mining_reward", 50),
         )
         blockchain.pending_transactions = [
             Transaction.from_dict(tx)

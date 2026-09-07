@@ -3,7 +3,7 @@ from blockchain.transaction import Transaction
 
 
 class Blockchain:
-    def __init__(self, difficulty=3, mining_reward=1):
+    def __init__(self, difficulty=3, mining_reward=50):
         self.difficulty = difficulty
         self.mining_reward = mining_reward
         self.pending_transactions = []
@@ -105,7 +105,7 @@ class Blockchain:
         return [block.to_dict() for block in self.chain]
 
     @staticmethod
-    def from_dict(data, difficulty=3, mining_reward=1):
+    def from_dict(data, difficulty=3, mining_reward=50):
         blockchain = Blockchain(difficulty=difficulty, mining_reward=mining_reward)
         blockchain.chain = [Block.from_dict(block) for block in data]
         return blockchain
