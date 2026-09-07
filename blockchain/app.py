@@ -3,13 +3,21 @@ from flask import Flask, jsonify, request
 from blockchain.block import Block
 from blockchain.chain import Blockchain
 from blockchain.network import Network
+from blockchain.storage import Storage
 from blockchain.transaction import Transaction
 from blockchain.wallet import Wallet
 
 
-blockchain = Blockchain(difficulty=3)
+DATA_FILE = "chain_data.json"
 network = Network()
 app = Flask(__name__)
+
+loaded = Storage.load(DATA_FILE)
+blockchain = loaded if loaded is not None else Blockchain(difficulty=3)
+
+
+def save_chain():
+    Storage.save(blockchain, DATA_FILE)
 
 
 @app.route("/chain", methods=["GET"])
@@ -43,6 +51,7 @@ def create_transaction():
     if not added:
         return jsonify({"message": "invalid transaction"}), 400
 
+    save_chain()
     return jsonify({
         "message": "transaction added to pending list",
         "transaction": transaction.to_dict(),
@@ -57,6 +66,7 @@ def mine_block():
 
     block = blockchain.mine_pending(miner)
     network.broadcast_block(block)
+    save_chain()
 
     return jsonify({
         "message": "block mined",
@@ -91,6 +101,7 @@ def receive_block():
     if not accepted:
         return jsonify({"message": "block rejected"}), 400
 
+    save_chain()
     return jsonify({"message": "block received"})
 
 
@@ -117,6 +128,8 @@ def get_peers():
 @app.route("/sync", methods=["GET"])
 def sync_chain():
     updated = network.sync_chain(blockchain)
+    if updated:
+        save_chain()
     return jsonify({
         "message": "chain updated" if updated else "already up to date",
         "length": len(blockchain.chain),
@@ -126,3 +139,9 @@ def sync_chain():
 @app.route("/valid", methods=["GET"])
 def is_valid():
     return jsonify({"valid": blockchain.is_valid()})
+
+
+@app.route("/save", methods=["POST"])
+def save_now():
+    path = save_chain()
+    return jsonify({"message": "chain saved", "file": path})
