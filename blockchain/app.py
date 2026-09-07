@@ -4,6 +4,7 @@ from blockchain.block import Block
 from blockchain.chain import Blockchain
 from blockchain.network import Network
 from blockchain.transaction import Transaction
+from blockchain.wallet import Wallet
 
 
 blockchain = Blockchain(difficulty=3)
@@ -16,21 +17,69 @@ def get_chain():
     return jsonify(blockchain.to_dict())
 
 
+@app.route("/pending", methods=["GET"])
+def get_pending():
+    return jsonify([tx.to_dict() for tx in blockchain.pending_transactions])
+
+
+@app.route("/transaction", methods=["POST"])
+def create_transaction():
+    data = request.get_json(silent=True) or {}
+    sender = data.get("sender")
+    receiver = data.get("receiver")
+    amount = data.get("amount")
+
+    if sender is None or receiver is None or amount is None:
+        return jsonify({"message": "sender, receiver and amount are required"}), 400
+
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        return jsonify({"message": "amount must be a number"}), 400
+
+    transaction = Transaction(sender, receiver, amount)
+    added = blockchain.add_transaction(transaction)
+
+    if not added:
+        return jsonify({"message": "invalid transaction"}), 400
+
+    return jsonify({
+        "message": "transaction added to pending list",
+        "transaction": transaction.to_dict(),
+        "pending_count": len(blockchain.pending_transactions),
+    })
+
+
 @app.route("/mine", methods=["POST"])
 def mine_block():
     data = request.get_json(silent=True) or {}
-    sender = data.get("sender", "network")
-    receiver = data.get("receiver", "miner")
-    amount = data.get("amount", 1)
+    miner = data.get("miner", "miner")
 
-    transaction = Transaction(sender, receiver, amount)
-    block = blockchain.add_block([transaction])
+    if not blockchain.pending_transactions:
+        return jsonify({"message": "no pending transactions to mine"}), 400
+
+    block = blockchain.mine_pending(miner)
     network.broadcast_block(block)
 
     return jsonify({
         "message": "block mined",
+        "miner": miner,
+        "reward": blockchain.mining_reward,
         "block": block.to_dict(),
     })
+
+
+@app.route("/balance/<name>", methods=["GET"])
+def get_balance(name):
+    return jsonify({
+        "name": name,
+        "balance": Wallet.get_balance(blockchain, name),
+    })
+
+
+@app.route("/balances", methods=["GET"])
+def get_balances():
+    return jsonify(Wallet.get_balances(blockchain))
 
 
 @app.route("/receive_block", methods=["POST"])
@@ -40,18 +89,11 @@ def receive_block():
         return jsonify({"message": "invalid data"}), 400
 
     block = Block.from_dict(data)
-    latest = blockchain.get_latest_block()
+    accepted = blockchain.add_block(block)
 
-    if block.previous_hash != latest.hash:
-        return jsonify({"message": "previous hash does not match"}), 400
+    if not accepted:
+        return jsonify({"message": "block rejected"}), 400
 
-    if block.hash != block.calculate_hash():
-        return jsonify({"message": "invalid block hash"}), 400
-
-    if not block.hash.startswith("0" * blockchain.difficulty):
-        return jsonify({"message": "proof of work is invalid"}), 400
-
-    blockchain.chain.append(block)
     return jsonify({"message": "block received"})
 
 
