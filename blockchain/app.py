@@ -55,10 +55,10 @@ def create_transaction():
         return jsonify({"message": "amount must be a number"}), 400
 
     transaction = Transaction(sender, receiver, amount)
-    added = blockchain.add_transaction(transaction)
+    error = blockchain.add_transaction(transaction)
 
-    if not added:
-        return jsonify({"message": "invalid transaction"}), 400
+    if error:
+        return jsonify({"message": error}), 400
 
     save_chain()
     return jsonify({
