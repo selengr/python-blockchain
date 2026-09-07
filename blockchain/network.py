@@ -1,6 +1,5 @@
 import requests
 
-from blockchain.block import Block
 from blockchain.chain import Blockchain
 
 
@@ -36,6 +35,7 @@ class Network:
                 peer_chain = Blockchain.from_dict(
                     response.json(),
                     difficulty=blockchain.difficulty,
+                    mining_reward=blockchain.mining_reward,
                 )
 
                 if len(peer_chain.chain) > len(best_chain) and peer_chain.is_valid():
