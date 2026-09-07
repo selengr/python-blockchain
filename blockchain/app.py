@@ -55,9 +55,6 @@ def mine_block():
     data = request.get_json(silent=True) or {}
     miner = data.get("miner", "miner")
 
-    if not blockchain.pending_transactions:
-        return jsonify({"message": "no pending transactions to mine"}), 400
-
     block = blockchain.mine_pending(miner)
     network.broadcast_block(block)
 
