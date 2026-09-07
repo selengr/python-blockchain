@@ -6,7 +6,7 @@ from blockchain.wallet import Wallet
 
 
 def run_demo():
-    chain = Blockchain(difficulty=3)
+    chain = Blockchain(difficulty=3, mining_reward=50)
 
     chain.mine_pending("Reza")
 
