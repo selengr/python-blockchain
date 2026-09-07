@@ -2,17 +2,20 @@ import sys
 
 from blockchain.transaction import Transaction
 from blockchain.chain import Blockchain
+from blockchain.wallet import Wallet
 
 
 def run_demo():
     chain = Blockchain(difficulty=3)
 
-    first = Transaction("Reza", "Bobi", 10)
-    second = Transaction("Bobi", "Charlie", 5)
-    chain.add_block([first, second])
+    chain.mine_pending("Reza")
 
-    third = Transaction("Charlie", "Mahsa", 2)
-    chain.add_block([third])
+    chain.add_transaction(Transaction("Reza", "Bobi", 10))
+    chain.add_transaction(Transaction("Bobi", "Charlie", 4))
+    chain.mine_pending("Reza")
+
+    chain.add_transaction(Transaction("Charlie", "Mahsa", 2))
+    chain.mine_pending("Mahsa")
 
     for block in chain.chain:
         print("Block:", block.index)
@@ -23,6 +26,7 @@ def run_demo():
         print()
 
     print("Chain valid:", chain.is_valid())
+    print("Balances:", Wallet.get_balances(chain))
 
 
 def run_node(port=5000):
