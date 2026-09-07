@@ -21,6 +21,7 @@ blockchain/
   app.py          - simple Flask API
   cli.py          - simple commands in the terminal
   run.py          - start demo or node
+  static/         - tiny web page
 tests/
   test_basic.py   - light tests for the main ideas
 ```
@@ -83,6 +84,17 @@ Or:
 ```bash
 PYTHONPATH=. python3 blockchain/run.py node 5000
 ```
+
+Then open this in your browser:
+
+```text
+http://localhost:5000/
+```
+
+On that tiny page you can:
+- send coins
+- mine pending transactions
+- see balances, pending list, and the chain
 
 The node also loads and saves `chain_data.json`.
 
