@@ -17,7 +17,7 @@ blockchain = loaded if loaded is not None else Blockchain(difficulty=3)
 
 
 def save_chain():
-    Storage.save(blockchain, DATA_FILE)
+    return Storage.save(blockchain, DATA_FILE)
 
 
 @app.route("/chain", methods=["GET"])
