@@ -16,9 +16,13 @@ blockchain/
   block.py        - one block with hash and mining
   chain.py        - the chain + pending transactions
   wallet.py       - read balances from the chain
+  storage.py      - save and load the chain as JSON
   network.py      - talk to other nodes
   app.py          - simple Flask API
+  cli.py          - simple commands in the terminal
   run.py          - start demo or node
+tests/
+  test_basic.py   - light tests for the main ideas
 ```
 
 ## How to install
@@ -35,22 +39,57 @@ pip3 install -r requirements.txt
 PYTHONPATH=. python3 blockchain/run.py
 ```
 
-This will:
-1. give Reza a mining reward
-2. send coins step by step
-3. print every block
-4. print balances
+Or with the CLI:
+
+```bash
+PYTHONPATH=. python3 blockchain/cli.py demo
+```
+
+## Simple CLI
+
+Mine a reward block:
+
+```bash
+PYTHONPATH=. python3 blockchain/cli.py mine --miner Reza
+```
+
+Send coins (goes to pending first):
+
+```bash
+PYTHONPATH=. python3 blockchain/cli.py send Reza Bobi 10
+PYTHONPATH=. python3 blockchain/cli.py mine --miner Reza
+```
+
+Check things:
+
+```bash
+PYTHONPATH=. python3 blockchain/cli.py pending
+PYTHONPATH=. python3 blockchain/cli.py chain
+PYTHONPATH=. python3 blockchain/cli.py balance Reza
+PYTHONPATH=. python3 blockchain/cli.py balances
+PYTHONPATH=. python3 blockchain/cli.py valid
+```
+
+The chain is saved in `chain_data.json` in the project folder.
 
 ## How to run a node
+
+```bash
+PYTHONPATH=. python3 blockchain/cli.py node --port 5000
+```
+
+Or:
 
 ```bash
 PYTHONPATH=. python3 blockchain/run.py node 5000
 ```
 
-Another node:
+The node also loads and saves `chain_data.json`.
+
+## Run the light tests
 
 ```bash
-PYTHONPATH=. python3 blockchain/run.py node 5001
+PYTHONPATH=. python3 -m unittest tests.test_basic -v
 ```
 
 ## Simple API examples
@@ -63,13 +102,7 @@ curl -X POST http://localhost:5000/transaction \
   -d '{"sender":"Reza","receiver":"Bobi","amount":10}'
 ```
 
-See pending transactions:
-
-```bash
-curl http://localhost:5000/pending
-```
-
-Mine pending transactions (miner gets a reward):
+Mine pending transactions:
 
 ```bash
 curl -X POST http://localhost:5000/mine \
@@ -77,37 +110,13 @@ curl -X POST http://localhost:5000/mine \
   -d '{"miner":"Reza"}'
 ```
 
-Get the chain:
+Useful reads:
 
 ```bash
 curl http://localhost:5000/chain
-```
-
-Check one balance:
-
-```bash
+curl http://localhost:5000/pending
 curl http://localhost:5000/balance/Reza
-```
-
-See all balances:
-
-```bash
 curl http://localhost:5000/balances
-```
-
-Add a peer and sync:
-
-```bash
-curl -X POST http://localhost:5000/add_peer \
-  -H "Content-Type: application/json" \
-  -d '{"peer":"localhost:5001"}'
-
-curl http://localhost:5000/sync
-```
-
-Check if the chain is valid:
-
-```bash
 curl http://localhost:5000/valid
 ```
 
@@ -118,6 +127,7 @@ curl http://localhost:5000/valid
 3. The miner also gets a small reward.
 4. Each block has a hash and points to the previous block.
 5. Wallet balances are calculated from all transactions in the chain.
+6. The chain can be saved to a JSON file and loaded again later.
 
 That is the main idea.
 Keep it simple and keep learning.
