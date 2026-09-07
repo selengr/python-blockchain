@@ -8,3 +8,5 @@ venv/
 .env
 .DS_Store
 .git-rewrite/
+chain_data.json
+*.json.bak
