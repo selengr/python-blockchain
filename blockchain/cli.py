@@ -33,9 +33,9 @@ def cmd_mine(args):
     chain = get_chain(args.file)
     block = chain.mine_pending(args.miner)
     Storage.save(chain, args.file)
-    print("Block mined:", block.hash)
     print("Miner:", args.miner)
     print("Reward:", chain.mining_reward)
+    print("Hash:", block.hash)
 
 
 def cmd_send(args):
