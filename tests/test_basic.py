@@ -25,8 +25,8 @@ class BasicBlockchainTests(unittest.TestCase):
 
         self.assertEqual(Wallet.get_balance(chain, "Reza"), 50)
 
-        added = chain.add_transaction(Transaction("Reza", "Bobi", 10))
-        self.assertTrue(added)
+        error = chain.add_transaction(Transaction("Reza", "Bobi", 10))
+        self.assertIsNone(error)
 
         chain.mine_pending("Reza")
 
@@ -37,8 +37,11 @@ class BasicBlockchainTests(unittest.TestCase):
         chain = Blockchain(difficulty=1, mining_reward=5)
         chain.mine_pending("Reza")
 
-        added = chain.add_transaction(Transaction("Reza", "Bobi", 100))
-        self.assertFalse(added)
+        error = chain.add_transaction(Transaction("Reza", "Bobi", 100))
+        self.assertEqual(
+            error,
+            "not enough balance: Reza has 5, tried to send 100",
+        )
         self.assertEqual(len(chain.pending_transactions), 0)
 
     def test_save_and_load_keeps_chain(self):
