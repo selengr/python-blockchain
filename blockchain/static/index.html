@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simple Python Blockchain</title>
+  <style>
+    :root {
+      --bg: #f3f1ec;
+      --ink: #1c1b19;
+      --muted: #5c574f;
+      --line: #d8d2c8;
+      --panel: #fffdf8;
+      --accent: #0f5c4c;
+      --accent-ink: #ffffff;
+      --warn: #7a2e1f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, #efe8d8 0, transparent 40%),
+        var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      margin: 0 0 28px;
+      color: var(--muted);
+      max-width: 42rem;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 18px 18px 14px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input {
+      flex: 1 1 140px;
+      min-width: 120px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 0;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    pre {
+      margin: 0;
+      padding: 12px;
+      background: #f7f4ee;
+      border: 1px solid var(--line);
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+      font-size: 0.86rem;
+    }
+
+    #status {
+      min-height: 1.4em;
+      margin-bottom: 16px;
+      color: var(--muted);
+    }
+
+    #status.error { color: var(--warn); }
+    #status.ok { color: var(--accent); }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 1.6rem; }
+      button, input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Simple Python Blockchain</h1>
+    <p class="lead">
+      A tiny page to send coins, mine blocks, and see the chain.
+      This is for learning, not real money.
+    </p>
+
+    <div id="status">Ready.</div>
+
+    <section>
+      <h2>Send coins</h2>
+      <div class="row">
+        <input id="sender" placeholder="sender" value="Reza" />
+        <input id="receiver" placeholder="receiver" value="Bobi" />
+        <input id="amount" type="number" min="0" step="0.1" placeholder="amount" value="1" />
+        <button id="sendBtn">Add transaction</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Mine</h2>
+      <div class="row">
+        <input id="miner" placeholder="miner name" value="Reza" />
+        <button id="mineBtn">Mine pending</button>
+        <button id="refreshBtn" class="secondary">Refresh</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Balances</h2>
+      <pre id="balances">Loading...</pre>
+    </section>
+
+    <section>
+      <h2>Pending transactions</h2>
+      <pre id="pending">Loading...</pre>
+    </section>
+
+    <section>
+      <h2>Chain</h2>
+      <pre id="chain">Loading...</pre>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+
+    function setStatus(text, type) {
+      statusEl.textContent = text;
+      statusEl.className = type || "";
+    }
+
+    function pretty(data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    async function readJson(response) {
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Request failed");
+      }
+      return data;
+    }
+
+    async function refresh() {
+      const [balances, pending, chain, valid] = await Promise.all([
+        fetch("/balances").then(readJson),
+        fetch("/pending").then(readJson),
+        fetch("/chain").then(readJson),
+        fetch("/valid").then(readJson),
+      ]);
+
+      document.getElementById("balances").textContent = pretty(balances);
+      document.getElementById("pending").textContent = pretty(pending);
+      document.getElementById("chain").textContent = pretty(chain);
+      setStatus(
+        "Chain length: " + chain.length + " | valid: " + valid.valid,
+        "ok"
+      );
+    }
+
+    async function sendCoins() {
+      const body = {
+        sender: document.getElementById("sender").value.trim(),
+        receiver: document.getElementById("receiver").value.trim(),
+        amount: Number(document.getElementById("amount").value),
+      };
+
+      const response = await fetch("/transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await readJson(response);
+      setStatus(data.message, "ok");
+      await refresh();
+    }
+
+    async function mine() {
+      const body = {
+        miner: document.getElementById("miner").value.trim() || "miner",
+      };
+
+      setStatus("Mining... this can take a few seconds.", "");
+      const response = await fetch("/mine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await readJson(response);
+      setStatus("Mined block " + data.block.index + " | hash " + data.block.hash, "ok");
+      await refresh();
+    }
+
+    document.getElementById("sendBtn").onclick = () => {
+      sendCoins().catch((error) => setStatus(error.message, "error"));
+    };
+    document.getElementById("mineBtn").onclick = () => {
+      mine().catch((error) => setStatus(error.message, "error"));
+    };
+    document.getElementById("refreshBtn").onclick = () => {
+      refresh().catch((error) => setStatus(error.message, "error"));
+    };
+
+    refresh().catch((error) => setStatus(error.message, "error"));
+  </script>
+</body>
+</html>
