@@ -34,6 +34,16 @@ From the project folder:
 pip3 install -r requirements.txt
 ```
 
+## Short commands
+
+```bash
+make demo
+make test
+make node
+```
+
+`make node` starts the app, then open http://localhost:5000/
+
 ## How to run the demo
 
 ```bash
