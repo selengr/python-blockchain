@@ -22,6 +22,19 @@ class Blockchain:
         if transaction.amount <= 0:
             return False
 
+        if transaction.sender != "network":
+            from blockchain.wallet import Wallet
+
+            balance = Wallet.get_balance(self, transaction.sender)
+            pending_spent = sum(
+                tx.amount
+                for tx in self.pending_transactions
+                if tx.sender == transaction.sender
+            )
+
+            if balance - pending_spent < transaction.amount:
+                return False
+
         self.pending_transactions.append(transaction)
         return True
 
