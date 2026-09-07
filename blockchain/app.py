@@ -1,4 +1,6 @@
-from flask import Flask, jsonify, request
+import os
+
+from flask import Flask, jsonify, request, send_from_directory
 
 from blockchain.block import Block
 from blockchain.chain import Blockchain
@@ -9,8 +11,10 @@ from blockchain.wallet import Wallet
 
 
 DATA_FILE = "chain_data.json"
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+
 network = Network()
-app = Flask(__name__)
+app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="/static")
 
 loaded = Storage.load(DATA_FILE)
 blockchain = loaded if loaded is not None else Blockchain(difficulty=3)
@@ -18,6 +22,11 @@ blockchain = loaded if loaded is not None else Blockchain(difficulty=3)
 
 def save_chain():
     return Storage.save(blockchain, DATA_FILE)
+
+
+@app.route("/")
+def home():
+    return send_from_directory(STATIC_DIR, "index.html")
 
 
 @app.route("/chain", methods=["GET"])
