@@ -1,6 +1,7 @@
 from blockchain.block import Block
 from blockchain.chain import Blockchain
 from blockchain.network import Network
+from blockchain.storage import Storage
 from blockchain.transaction import Transaction
 from blockchain.wallet import Wallet
 
@@ -10,4 +11,5 @@ __all__ = [
     "Blockchain",
     "Network",
     "Wallet",
+    "Storage",
 ]
