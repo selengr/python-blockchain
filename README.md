@@ -6,14 +6,20 @@ I made it to understand the basic ideas of blockchain in a clear way.
 It is not a real crypto coin.
 It is just for learning.
 
-## What is inside
+Repo: https://github.com/selengr/python-blockchain
 
-- `transaction.py` - send coins from one person to another
-- `block.py` - one block with data, hash, and mining
-- `chain.py` - the full chain of blocks
-- `network.py` - talk to other nodes (peers)
-- `app.py` - simple API with Flask
-- `run.py` - start the demo or the node
+## Project structure
+
+```
+blockchain/
+  transaction.py  - one payment from sender to receiver
+  block.py        - one block with hash and mining
+  chain.py        - the chain + pending transactions
+  wallet.py       - read balances from the chain
+  network.py      - talk to other nodes
+  app.py          - simple Flask API
+  run.py          - start demo or node
+```
 
 ## How to install
 
@@ -25,23 +31,23 @@ pip3 install -r requirements.txt
 
 ## How to run the demo
 
-This mines a few blocks and prints the chain:
-
 ```bash
 PYTHONPATH=. python3 blockchain/run.py
 ```
 
-You should see each block, its hash, and if the chain is valid.
+This will:
+1. give Reza a mining reward
+2. send coins step by step
+3. print every block
+4. print balances
 
 ## How to run a node
-
-Start one node on port 5000:
 
 ```bash
 PYTHONPATH=. python3 blockchain/run.py node 5000
 ```
 
-You can start another node on another port if you want:
+Another node:
 
 ```bash
 PYTHONPATH=. python3 blockchain/run.py node 5001
@@ -49,31 +55,53 @@ PYTHONPATH=. python3 blockchain/run.py node 5001
 
 ## Simple API examples
 
+Add a transaction to the pending list:
+
+```bash
+curl -X POST http://localhost:5000/transaction \
+  -H "Content-Type: application/json" \
+  -d '{"sender":"Reza","receiver":"Bobi","amount":10}'
+```
+
+See pending transactions:
+
+```bash
+curl http://localhost:5000/pending
+```
+
+Mine pending transactions (miner gets a reward):
+
+```bash
+curl -X POST http://localhost:5000/mine \
+  -H "Content-Type: application/json" \
+  -d '{"miner":"Reza"}'
+```
+
 Get the chain:
 
 ```bash
 curl http://localhost:5000/chain
 ```
 
-Mine a new block:
+Check one balance:
 
 ```bash
-curl -X POST http://localhost:5000/mine \
-  -H "Content-Type: application/json" \
-  -d '{"sender":"Reza","receiver":"Bobi","amount":10}'
+curl http://localhost:5000/balance/Reza
 ```
 
-Add a peer:
+See all balances:
+
+```bash
+curl http://localhost:5000/balances
+```
+
+Add a peer and sync:
 
 ```bash
 curl -X POST http://localhost:5000/add_peer \
   -H "Content-Type: application/json" \
   -d '{"peer":"localhost:5001"}'
-```
 
-Sync the chain from peers:
-
-```bash
 curl http://localhost:5000/sync
 ```
 
@@ -83,14 +111,13 @@ Check if the chain is valid:
 curl http://localhost:5000/valid
 ```
 
-## Simple idea
+## How it works
 
-1. A transaction says who sends, who receives, and how much.
-2. Transactions go into a block.
-3. The block gets a hash.
-4. Mining finds a hash that starts with zeros.
-5. Each block points to the previous block hash.
-6. That link is what makes the chain hard to change.
+1. A transaction waits in the pending list.
+2. Mining puts pending transactions into a new block.
+3. The miner also gets a small reward.
+4. Each block has a hash and points to the previous block.
+5. Wallet balances are calculated from all transactions in the chain.
 
 That is the main idea.
 Keep it simple and keep learning.
